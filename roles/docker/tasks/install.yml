@@ -6,6 +6,9 @@
 - name: copy yum repo file for docker
   template: src=docker-main.repo.j2 dest=/etc/yum.repos.d/docker-main.repo owner=root group=root mode=0644
 
+- name: update yum
+  shell: yum update -y
+
 - name: install docker
   yum: name=docker-engine-{{pl_docker_version}} state=present enablerepo=docker-main-repo
   notify: restart docker
@@ -20,12 +23,11 @@
 - name: make sure docker service is running
   service: name=docker state=started enabled=yes
 
+- name: enable the EPEL repo
+  shell: yum --enablerepo=extras install epel-release -y
+
 - name: ensure python-docker-py exists
-  yum: name={{item}} state=latest
-  with_items:
-    - 'python-docker-py'
-    - 'epel-release'
-    - 'python2-pip'
+  yum: name=python2-pip state=latest
 
 - name: install docker-compose
   shell: pip install --upgrade --force-reinstall --no-cache-dir docker-compose
