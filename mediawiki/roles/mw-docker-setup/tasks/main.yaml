@@ -1,0 +1,15 @@
+---
+- name: create mediawiki directory
+  file: path=/mnt1/mediawiki state=directory
+
+- name: copy mediawiki docker compose
+  template: src=docker-compose.yml dest=/mnt1/mediawiki/docker-compose.yml
+
+- name: copy mediawiki docker env file
+  template: src=db.env dest=/mnt1/mediawiki/db.env
+
+- name: "flush the handlers"
+  meta: flush_handlers
+
+- name: start the docker containers
+  shell: cd /mnt1/mediawiki && docker-compose up -d

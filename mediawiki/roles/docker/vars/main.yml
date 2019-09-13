@@ -1,0 +1,4 @@
+---
+pl_docker_version: '17.05.0.ce'
+pl_docker_runtime_root: '/mnt1/docker'
+pl_docker_storage_driver: 'overlay2'

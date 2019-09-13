@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network.target
+
+[Service]
+Type=notify
+# the default is not to use systemd for cgroups because the delegate issues still
+# exists and systemd currently does not support the cgroup feature set required
+# for containers run by docker
+ExecStartPre=/bin/rm -rf /var/run/docker.sock
+
+{% if pl_docker_runtime_root is defined and pl_docker_runtime_root|trim != '' %}
+ExecStart=/usr/bin/dockerd --graph={{pl_docker_runtime_root}} --storage-driver={{pl_docker_storage_driver}} --storage-opt overlay2.override_kernel_check=1 --max-concurrent-downloads=10
+{% elif pl_docker_runtime_root is defined and pl_docker_runtime_root|trim != '' and 'build' in group_names %}
+ExecStart=/usr/bin/dockerd --graph={{pl_docker_runtime_root}} --storage-driver=devicemapper --storage-opt dm.basesize=25G
+{% else %}
+ExecStart=/usr/bin/dockerd
+{% endif %}
+ExecReload=/bin/kill -s HUP $MAINPID
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=327680
+LimitNPROC=infinity
+LimitCORE=infinity
+# Uncomment TasksMax if your systemd version supports it.
+# Only systemd 226 and above support this version.
+#TasksMax=infinity
+TimeoutStartSec=0
+# set delegate yes so that systemd does not reset the cgroups of docker containers
+Delegate=yes
+# kill only the docker process, not all processes in the cgroup
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

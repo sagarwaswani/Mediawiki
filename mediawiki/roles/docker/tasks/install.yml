@@ -1,0 +1,31 @@
+---
+- name: make sure pl_docker_runtime_root path is present if declared
+  file: path={{pl_docker_runtime_root}} state=directory
+  when: pl_docker_runtime_root is defined and pl_docker_runtime_root|trim != ''
+
+- name: copy yum repo file for docker
+  template: src=docker-main.repo.j2 dest=/etc/yum.repos.d/docker-main.repo owner=root group=root mode=0644
+
+- name: install docker
+  yum: name=docker-engine-{{pl_docker_version}} state=present enablerepo=docker-main-repo
+  notify: restart docker
+
+- name: copy the systemctl script file
+  template: src=docker.service.j2 dest=/usr/lib/systemd/system/docker.service owner=root group=root mode=0644
+  notify: restart docker
+
+- name: reload systemctl daemon
+  shell: systemctl daemon-reload
+
+- name: make sure docker service is running
+  service: name=docker state=started enabled=yes
+
+- name: ensure python-docker-py exists
+  yum: name={{item}} state=latest
+  with_items:
+    - 'python-docker-py'
+    - 'epel-release'
+    - 'python2-pip'
+
+- name: install docker-compose
+  shell: pip install --upgrade --force-reinstall --no-cache-dir docker-compose

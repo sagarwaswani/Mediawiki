@@ -1,0 +1,35 @@
+version: '3'
+
+volumes:
+  mediawikiMedia:
+    driver: local
+
+services:
+  db:
+    image: mysql:5.7.22
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: testpass
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpass
+    expose:
+        - "33060"
+    ports:
+        - "33060:3306"
+    network_mode: bridge
+  mediawiki:
+    image: mediawiki
+    ports:
+     - "8080:80"
+    volumes:
+     - mediawikiMedia:/usr/local/mwmedia
+    env_file:
+      - db.env
+    environment:
+      MW_HOSTNAME: mw
+      ORCHESTRATION: DOCKER-COMPOSE
+    depends_on:
+      - "db"
+    network_mode: bridge
+    links:
+      - db

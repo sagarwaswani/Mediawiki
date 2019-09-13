@@ -1,0 +1,6 @@
+---
+- name: clean previous install
+  include: clean.yml
+
+- name: install docker
+  include: install.yml

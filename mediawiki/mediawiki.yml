@@ -1,0 +1,7 @@
+---
+- hosts: "{{inv_hosts}}"
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - { role: mw-docker-setup }

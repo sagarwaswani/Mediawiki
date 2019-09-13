@@ -1,0 +1,22 @@
+---
+- name: make sure docker packages are removed
+  yum: name={{item}} state=absent
+  with_items:
+    - "docker-engine"
+    - "docker-engine-selinux"
+
+- name: Remove Docker Compose pip package
+  pip: name=docker-compose state=absent
+  ignore_errors: yes
+
+- name: set pl_install_docker to true
+  set_fact: pl_install_docker='true'
+
+- name: unmount pl_docker_runtime
+  shell: "umount /mnt1/docker/overlay2"
+  when: pl_docker_runtime_root is defined and pl_docker_runtime_root|trim != ''
+  ignore_errors: yes
+
+- name: make sure pl_docker_runtime_root path is cleared
+  file: path={{pl_docker_runtime_root}} state=absent
+  when: pl_docker_runtime_root is defined and pl_docker_runtime_root|trim != ''
